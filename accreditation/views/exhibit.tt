@@ -1,0 +1,88 @@
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-sm-4">
+                    <label>Nome espositore:</label>
+                </div>
+                <div class="col-sm-8">
+                    [% exhibit.exhibitor_name | html %]
+                </div>
+            </div>
+            [% IF exhibit.title %]
+            <div class="row">
+                <div class="col-sm-4">
+                    <label>Titolo stand:</label>
+                </div>
+                <div class="col-sm-8">
+                    [% exhibit.title | html %]
+                </div>
+            </div>
+            [% END %]
+            
+            [% IF exhibit.projects.count > 0 %]
+            <div class="row">
+                <div class="col-sm-4">
+                    <label>Progetti:</label>
+                </div>
+                <div class="col-sm-8" style="font-size: 70%">
+                    [% FOREACH project IN exhibit.projects.all %]
+                        ([% project.id %]) <i>[% project.title | html %] - [% project.author %]</i><br />
+                    [% END %]
+                </div>
+            </div>
+            [% END %]
+            
+            [% IF !show_open_link %]
+            <div class="row">
+                <div class="col-sm-8">
+                    <label>Max badge per allestimento:</label>
+                </div>
+                <div class="col-sm-4">
+                    [% exhibit.max_setup_badges | html %]
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-8">
+                    <label>Max badge per apertura:</label>
+                </div>
+                <div class="col-sm-4">
+                    [% exhibit.max_event_badges | html %]
+                </div>
+            </div>
+            [% END %]
+        </div>
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-sm-3">
+                    <label>Categoria:</label>
+                </div>
+                <div class="col-sm-4">
+                    [% IF exhibit.category == 'sponsors' || exhibit.category == 'partners' %]
+                        <h2 style="margin-top: 0"><span class="label label-danger">[% exhibit.category %]</span></h2>
+                    [% ELSE %]
+                        <h2 style="margin-top: 0"><span class="label label-primary">makers</span></h2>
+                    [% END %]
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-3">
+                    <label>Stand:</label>
+                </div>
+                <div class="col-sm-9">
+                    [% FOREACH loc IN exhibit.locations.all %]
+                        [% loc.public_name | html %] [% IF loc.gate %](ingresso [% loc.gate %])[% END %]<br />
+                    [% END %]
+                </div>
+            </div>
+        </div>
+    </div>
+    [% IF show_open_link %]
+    <div class="panel-body">
+        <a class="btn btn-default" href="/exhibit?oid=[% exhibit.oid %]">Apri</a>
+    </div>
+    [% END %]
+</div>
+
+[% SET event_badges_category = exhibit.badges_category %]
+[% INCLUDE "badges.tt" %]

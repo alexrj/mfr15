@@ -1,0 +1,26 @@
+<table class="table table-striped">
+    <tr>
+        <th></th>
+        <th>Ritirati</th>
+        <th>Da ritirare</th>
+        <th>Totale</th>
+    </tr>
+    <tr>
+        <td>Allestimento</td>
+        <td>[% setup_collected %]</td>
+        <td>[% setup_not_collected %]</td>
+        <td>[% setup_collected + setup_not_collected %]</td>
+    </tr>
+    <tr>
+        <td>Apertura</td>
+        <td>[% event_collected %]</td>
+        <td>[% event_not_collected %]</td>
+        <td>[% event_collected + event_not_collected %]</td>
+    </tr>
+    <tr>
+        <td>Totale</td>
+        <td>[% event_collected + setup_collected %]</td>
+        <td>[% event_not_collected + setup_not_collected %]</td>
+        <td>[% event_not_collected + setup_not_collected + event_not_collected + setup_not_collected %]</td>
+    </tr>
+</table>

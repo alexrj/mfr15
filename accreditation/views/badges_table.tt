@@ -1,0 +1,34 @@
+<table class="table table-striped">
+    <tr>
+        <th></th>
+        <th>Nome</th>
+        <th>Cognome</th>
+        <th></th>
+    </tr>
+    [% FOREACH badge IN badges.all %]
+    <tr>
+        <td>
+            [% IF !badge.checkin %]
+            <input type="checkbox" style="width: 30px; height: 30px" name="badges" value="[% badge.local_id %]" data-name="[% badge.name | html %] [% badge.lastname | html %]" />
+            [% END %]
+        </td>
+        <td>[% badge.name | html %]</td>
+        <td>[% badge.lastname | html %]</td>
+        <td>
+            [% IF !badge.checkin %]
+                <span class="label label-success">Da ritirare</span>
+            [% ELSE %]
+                <p>
+                    <span class="label label-warning">Ritirato</span>
+                    <a class="btn btn-default btn-xs" onclick="return confirm('Sei sicuro di voler annullare il rilascio di questo badge?')" href="/cancel?lid=[% badge.local_id %]&oid=[% badge.oid || '' %]">Annulla</a>
+                </p>
+                <p>
+                    <small>da [% badge.checkin_person | html %]
+                    [% badge.checkin_person_contact | html %]
+                    <br />il [% badge.checkin %]</small>
+                </p>
+            [% END %]
+        </td>
+    </tr>
+    [% END %]
+</table>

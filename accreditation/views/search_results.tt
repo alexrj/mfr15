@@ -1,0 +1,15 @@
+<div class="row">
+    Risultati trovati per <i>&quot;[% params.query %]&quot;:</i>
+</div>
+
+<div class="row">
+    [% FOREACH exhibit IN exhibits.all %]
+        [% SET show_open_link = 1 %]
+        [% INCLUDE "exhibit.tt" %]
+    [% END %]
+    
+    [% FOREACH event IN events.all %]
+        [% SET show_open_link = 1 %]
+        [% INCLUDE "event.tt" %]
+    [% END %]
+</div>

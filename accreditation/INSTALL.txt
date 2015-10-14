@@ -1,0 +1,6 @@
+apt-get install cpanminus mysql-server nginx build-essential libmysqlclient-dev \
+    libssl-dev acpid
+
+cpanm Dancer Starman Daemon::Control XXX List::MoreUtils JSON DateTime \
+    DBI DBD::mysql DBIx::Lite LWP::Protocol::https DateTime::Format::MySQL \
+    Template

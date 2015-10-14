@@ -1,0 +1,104 @@
+[% IF setup_badges || event_badges %]
+<form method="post" action="/checkin" class="accreditation-form">
+    [% IF exhibit %]
+    <input type="hidden" name="exhibit_oid" value="[% exhibit.oid %]" />
+    [% END %]
+    [% IF event %]
+    <input type="hidden" name="event_oid" value="[% event.oid %]" />
+    [% END %]
+    
+    <div class="row">
+        <div class="row">
+            [% IF setup_badges %]
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3>Allestimento <small>tipo badge: <span class="label label-default">set-up</span></small></h3>
+                    </div>
+                    <div class="panel-body">
+                        [% badges = setup_badges %]
+                        [% INCLUDE "badges_table.tt" %]
+                    </div>
+                </div>
+            </div>
+            [% END %]
+            
+            [% IF event_badges %]
+            <div class="col-sm-6">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3>Apertura <small>tipo badge: <span class="label label-info">[% event_badges_category %]</span></small></h3>
+                    </div>
+                    <div class="panel-body">
+                        [% badges = event_badges %]
+                        [% INCLUDE "badges_table.tt" %]
+                    </div>
+                </div>
+            </div>
+            [% END %]
+        </div>
+    </div>
+    
+    <div class="panel panel-success release-form">
+        <div class="panel-body">
+            <div class="form-group">
+                <label for="checkin_person">Persona che ritira i badge:</label>
+                <select class="form-control" name="checkin_person"></select>
+            </div>
+            <div class="form-group">
+                <label for="checkin_person_contact">Recapito telefonico:</label>
+                <input type="text" class="form-control" id="checkin_person_contact" placeholder="" name="checkin_person_contact">
+            </div>
+            <button type="submit" class="btn btn-success">Registra</button>
+        </div>
+    </div>
+</form>
+
+<div class="panel panel-warning col-md-5" style="margin-top: 100px">
+    <div class="panel-heading">
+        Aggiunta manuale
+    </div>
+    <div class="panel-body">
+        <form method="post" action="/add">
+            [% IF exhibit %]
+            <input type="hidden" name="exhibit_oid" value="[% exhibit.oid %]" />
+            [% END %]
+            [% IF event %]
+            <input type="hidden" name="event_oid" value="[% event.oid %]" />
+            [% END %]
+            
+            <div class="form-group">
+                <label for="checkin_person">Tipo badge:</label>
+                <select class="form-control" name="badge_type">
+                    <option value="setup">Allestimento (setup)</option>
+                    <option value="event">Apertura</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="checkin_person_contact">Nome:</label>
+                <input type="text" class="form-control" name="name">
+            </div>
+            <div class="form-group">
+                <label for="checkin_person_contact">Cognome:</label>
+                <input type="text" class="form-control" name="lastname">
+            </div>
+            <button type="submit" class="btn btn-success">Aggiungi</button>
+        </form>
+    </div>
+</div>
+
+<script>
+$(function() {
+    $('.release-form').hide();
+    $('.accreditation-form input[type="checkbox"]').on('click', function () {
+        var selected = $('.accreditation-form input[type="checkbox"]:checked');
+        $('.release-form').toggle(selected.length > 0);
+        $('.release-form select').empty();
+        selected.each(function () {
+            $('.release-form select').append('<option>' + $(this).data('name') + '</option>');
+        });
+    });
+});
+</script>
+
+[% END %]
