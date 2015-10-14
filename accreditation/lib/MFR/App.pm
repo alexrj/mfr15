@@ -137,7 +137,7 @@ get '/event' => sub {
     
     template 'event', {
         event        => $event,
-        event_badges => $badges->order_by('lastname'),
+        event_badges => $badges->order_by('me.lastname'),
     };
 };
 
@@ -145,7 +145,7 @@ sub filter_badges {
     my ($badges) = @_;
     
     return $badges
-        ->inner_join('badges_name_count', { 'me.name' => 'badges_name_count.name', 'me.lastname' => 'badges_name_count.lastname' })
+        ->left_join('badges_name_count', { 'me.name' => 'badges_name_count.name', 'me.lastname' => 'badges_name_count.lastname' })
         ->select_also(['badges_name_count.badge_count' => 'same_name_count'])
         ->left_join('collected_badges', { 'me.name' => 'collected_badges.name', 'me.lastname' => 'collected_badges.lastname' })
         ->select_also(['collected_badges.local_id' => 'collected_badge_local_id']);

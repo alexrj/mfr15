@@ -76,7 +76,8 @@
         Aggiunta manuale
     </div>
     <div class="panel-body">
-        <form method="post" action="/add">
+        <form method="post" action="/add" class="add-form">
+            <input type="hidden" name="selected_badges" value="" />
             [% IF exhibit %]
             <input type="hidden" name="exhibit_oid" value="[% exhibit.oid %]" />
             [% END %]
@@ -106,15 +107,17 @@
 
 <script>
 $(function() {
-    $('.release-form').hide();
-    $('.accreditation-form input[type="checkbox"]').on('click', function () {
+    var update = function () {
         var selected = $('.accreditation-form input[type="checkbox"]:checked');
         $('.release-form').toggle(selected.length > 0);
         $('.release-form select').empty();
         selected.each(function () {
             $('.release-form select').append('<option>' + $(this).data('name') + '</option>');
         });
-    });
+        $('.add-form input[name="selected_badges"]').val(jQuery.map(selected, function(i) { return $(i).val() }).join(','));
+    };
+    $('.accreditation-form input[type="checkbox"]').on('click', update);
+    update();
 });
 </script>
 

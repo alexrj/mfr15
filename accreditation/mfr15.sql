@@ -44,7 +44,7 @@ CREATE TABLE events (
     UNIQUE(oid)
 ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
-CREATE TABLE badges (
+CREATE TABLE badges_backup (
     local_id INTEGER UNSIGNED AUTO_INCREMENT,
     oid VARCHAR(32),
     exhibit_oid VARCHAR(32),
@@ -61,7 +61,7 @@ CREATE TABLE badges (
     UNIQUE(oid),
     INDEX(exhibit_oid),
     INDEX(event_oid),
-    INDEX(name,lastname),
+    INDEX(name,lastname)
 ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 CREATE TABLE badges_import (

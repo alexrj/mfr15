@@ -9,7 +9,7 @@
     <tr>
         <td>
             [% IF !badge.checkin && !badge.deleted %]
-            <input type="checkbox" style="width: 30px; height: 30px" name="badges" value="[% badge.local_id %]" data-name="[% badge.name | html %] [% badge.lastname | html %]" />
+            <input type="checkbox" style="width: 30px; height: 30px" name="badges" value="[% badge.local_id %]" data-name="[% badge.name | html %] [% badge.lastname | html %]" [% IF params.selected_badges.search('\b' _ badge.local_id _ '\b') %]checked="checked"[% END %] />
             [% END %]
         </td>
         <td>
@@ -46,7 +46,7 @@
                 </p>
             [% END %]
             
-            [% IF badge.same_name_count > 1 %]
+            [% IF badge.same_name_count && badge.same_name_count > 1 %]
             <p><a href="/search?same_name_as_lid=[% badge.local_id %]" class="label label-warning">Presente in altre liste!</a></p>
             [% END %]
             [% IF badge.collected_badge_local_id && badge.collected_badge_local_id != badge.local_id %]

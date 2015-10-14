@@ -98,7 +98,7 @@ my $dbix = MFR::Accreditation::dbix();
         
         {
             my $sth = $dbix->dbh->prepare("INSERT INTO badges_import SET oid = ?,
-                name = ?, lastname = ?, checkin = ?, checkin_person = ?,
+                name = TRIM(?), lastname = TRIM(?), checkin = ?, checkin_person = ?,
                 checkin_person_contact = ?, deleted = ?");
         
             my $badges_json = MFR::get_json(12);
@@ -158,16 +158,16 @@ my $dbix = MFR::Accreditation::dbix();
         $dbix->dbh->do("LOCK TABLES badges WRITE, badges AS b WRITE, badges_import AS i READ,
             badges_name_count WRITE");
         
-        # delete all non-local badges that haven't been collected/deleted and do not exist anymore
+        # delete all non-local badges that haven't been collected and do not exist anymore
         $dbix->dbh->do("DELETE FROM badges WHERE oid IS NOT NULL AND checkin IS NULL
-            AND deleted = 0 AND oid NOT IN (SELECT oid FROM badges_import i)");
+            AND oid NOT IN (SELECT oid FROM badges_import i)");
         
-        # update all non-local badges that haven't been collected/deleted
+        # update all non-local badges
         $dbix->dbh->do("UPDATE badges b INNER JOIN badges_import i ON (b.oid = i.oid)
             SET b.badge_type = i.badge_type, b.name = i.name, b.lastname = i.lastname,
             b.checkin = i.checkin, b.checkin_person = i.checkin_person,
             b.checkin_person_contact = i.checkin_person_contact, b.deleted = i.deleted
-            WHERE b.oid IS NOT NULL AND b.checkin IS NULL AND b.deleted = 0");
+            WHERE b.oid IS NOT NULL");
         
         # insert new badges
         $dbix->dbh->do("INSERT IGNORE INTO badges (oid, exhibit_oid, event_oid, badge_type,
@@ -177,10 +177,9 @@ my $dbix = MFR::Accreditation::dbix();
             WHERE oid NOT IN (SELECT oid FROM badges b)");
         
         $dbix->dbh->do("TRUNCATE TABLE badges_name_count");
-        $dbix->dbh->do("INSERT INTO badges_name_count
+        $dbix->dbh->do("INSERT IGNORE INTO badges_name_count
             SELECT name, lastname, COUNT(*) FROM
-                (SELECT name, lastname FROM badges GROUP BY name, lastname, exhibit_oid, event_oid) AS same_name
-                GROUP BY name, lastname");
+                (SELECT DISTINCT name, lastname, exhibit_oid, event_oid FROM badges) AS same_name GROUP BY name,lastname");
         
         $dbix->dbh->do("UNLOCK TABLES");
     });
