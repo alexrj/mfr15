@@ -1,5 +1,5 @@
 <div class="row">
-    Risultati trovati per <i>&quot;[% params.query %]&quot;:</i>
+    Risultati trovati per <i>&quot;[% query || params.query %]&quot;:</i>
 </div>
 
 <div class="row">

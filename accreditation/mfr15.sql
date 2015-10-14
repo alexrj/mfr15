@@ -55,11 +55,13 @@ CREATE TABLE badges (
     checkin DATETIME,
     checkin_person VARCHAR(255),
     checkin_person_contact VARCHAR(255),
+    deleted BOOL NOT NULL,
     to_sync BOOL NOT NULL,
     PRIMARY KEY (local_id),
     UNIQUE(oid),
     INDEX(exhibit_oid),
-    INDEX(event_oid)
+    INDEX(event_oid),
+    INDEX(name,lastname),
 ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 CREATE TABLE badges_import (
@@ -72,7 +74,18 @@ CREATE TABLE badges_import (
     checkin DATETIME,
     checkin_person VARCHAR(255),
     checkin_person_contact VARCHAR(255),
+    deleted BOOL NOT NULL,
     PRIMARY KEY (oid),
     INDEX(exhibit_oid),
     INDEX(event_oid)
 ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+
+CREATE TABLE badges_name_count (
+    name VARCHAR(255) NOT NULL,
+    lastname VARCHAR(255) NOT NULL,
+    badge_count SMALLINT UNSIGNED NOT NULL,
+    PRIMARY KEY (name, lastname)
+) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+
+CREATE VIEW collected_badges AS
+    SELECT * FROM badges WHERE checkin IS NOT NULL;

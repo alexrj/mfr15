@@ -21,6 +21,6 @@
         <td>Totale</td>
         <td>[% event_collected + setup_collected %]</td>
         <td>[% event_not_collected + setup_not_collected %]</td>
-        <td>[% event_not_collected + setup_not_collected + event_not_collected + setup_not_collected %]</td>
+        <td>[% event_collected + setup_collected + event_not_collected + setup_not_collected %]</td>
     </tr>
 </table>

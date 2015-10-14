@@ -39,17 +39,34 @@
         </div>
     </div>
     
-    <div class="panel panel-success release-form">
-        <div class="panel-body">
-            <div class="form-group">
-                <label for="checkin_person">Persona che ritira i badge:</label>
-                <select class="form-control" name="checkin_person"></select>
+    <div class="row release-form">
+        <div class="col-sm-6">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    Ritiro badge
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="checkin_person">Persona che ritira i badge:</label>
+                        <select class="form-control" name="checkin_person"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="checkin_person_contact">Note / recapito telefonico:</label>
+                        <input type="text" class="form-control" id="checkin_person_contact" placeholder="" name="checkin_person_contact">
+                    </div>
+                    <button type="submit" class="btn btn-success">Registra</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="checkin_person_contact">Recapito telefonico:</label>
-                <input type="text" class="form-control" id="checkin_person_contact" placeholder="" name="checkin_person_contact">
+        </div>
+        <div class="col-sm-6">
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    Cancellazione badge
+                </div>
+                <div class="panel-body">
+                    <button type="submit" class="btn btn-danger" name="delete" value="1">Cancella selezionati</button>
+                </div>
             </div>
-            <button type="submit" class="btn btn-success">Registra</button>
         </div>
     </div>
 </form>

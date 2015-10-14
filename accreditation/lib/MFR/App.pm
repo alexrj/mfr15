@@ -14,6 +14,35 @@ get '/' => sub {
     template 'index';
 };
 
+get '/search' => sub {
+    my $badge_local_id = param 'same_name_as_lid';
+    redirect '/' if !$badge_local_id;
+    
+    my $badge = $dbix->table('badges')->find($badge_local_id);
+    my $badges = $dbix->table('badges')->search({
+        name        => $badge->name,
+        lastname    => $badge->lastname,
+    });
+    
+    if (param 'collected') {
+        $badges = $badges->search({ checkin => { '!=' => undef } });
+    }
+    
+    my $exhibits = $dbix->table('exhibits')->search({
+        oid => { -in => [ map $_->exhibit_oid, $badges->search({ exhibit_oid => { '!=' => undef } })->all ] },
+    });
+    
+    my $events = $dbix->table('events')->search({
+        oid => { -in => [ map $_->event_oid, $badges->search({ event_oid => { '!=' => undef } })->all ] },
+    });
+    
+    template 'search_results', {
+        query       => $badge->name . " " . $badge->lastname,
+        exhibits    => $exhibits,
+        events      => $events,
+    };
+};
+
 post '/search' => sub {
     my $query = param 'query';
     redirect '/' if !$query;
@@ -88,36 +117,62 @@ post '/search' => sub {
 };
 
 get '/exhibit' => sub {
-    my $exhibit = $dbix->table('exhibits')->find({ oid => param 'oid' })
+    my $exhibit = $dbix->table('exhibits')->find({ 'me.oid' => param 'oid' })
         or redirect '/';
     
+    my $badges = filter_badges($exhibit->badges);
+    
     template 'exhibit', {
-        exhibit => $exhibit,
-        setup_badges => $exhibit->badges->search({ badge_type => 'setup' })->order_by('lastname'),
-        event_badges => $exhibit->badges->search({ badge_type => 'event' })->order_by('lastname'),
+        exhibit      => $exhibit,
+        setup_badges => $badges->search({ 'me.badge_type' => 'setup' })->order_by('me.lastname'),
+        event_badges => $badges->search({ 'me.badge_type' => 'event' })->order_by('me.lastname'),
     };
 };
 
 get '/event' => sub {
-    my $event = $dbix->table('events')->find({ oid => param 'oid' })
+    my $event = $dbix->table('events')->find({ 'me.oid' => param 'oid' })
         or redirect '/';
     
+    my $badges = filter_badges($event->badges);
+    
     template 'event', {
-        event => $event,
-        event_badges => $event->badges->order_by('lastname'),
+        event        => $event,
+        event_badges => $badges->order_by('lastname'),
     };
 };
+
+sub filter_badges {
+    my ($badges) = @_;
+    
+    return $badges
+        ->inner_join('badges_name_count', { 'me.name' => 'badges_name_count.name', 'me.lastname' => 'badges_name_count.lastname' })
+        ->select_also(['badges_name_count.badge_count' => 'same_name_count'])
+        ->left_join('collected_badges', { 'me.name' => 'collected_badges.name', 'me.lastname' => 'collected_badges.lastname' })
+        ->select_also(['collected_badges.local_id' => 'collected_badge_local_id']);
+}
 
 post '/checkin' => sub {
     my $badges = param 'badges';
     $badges = [$badges] if ref($badges) ne 'ARRAY';
     
-    $dbix->table('badges')->search({ local_id => $badges })->update({
-        checkin => \ "NOW()",
-        checkin_person => param('checkin_person'),
-        checkin_person_contact => param('checkin_person_contact'),
-        to_sync => 1,
+    my $badges_rs = $dbix->table('badges')->search({
+        local_id    => $badges,
+        checkin     => undef,
     });
+    
+    if (param 'delete') {
+        $badges_rs->update({
+            deleted => 1,
+            to_sync => 1,
+        });
+    } else {
+        $badges_rs->update({
+            checkin                 => \ "NOW()",
+            checkin_person          => param('checkin_person'),
+            checkin_person_contact  => param('checkin_person_contact'),
+            to_sync => 1,
+        });
+    }
     
     if (param 'exhibit_oid') {
         redirect '/exhibit?oid=' . param('exhibit_oid');
@@ -158,6 +213,7 @@ get '/cancel' => sub {
             checkin                 => undef,
             checkin_person          => undef,
             checkin_person_contact  => undef,
+            deleted                 => undef,
             to_sync                 => 1,
         });
     
@@ -174,7 +230,14 @@ get '/cancel' => sub {
 };
 
 get '/status' => sub {
-    my $badges = $dbix->table('badges');
+    my $badges = $dbix->table('badges')->search([
+        {
+            exhibit_oid => { '!=', undef },
+        },
+        {
+            event_oid => { '!=', undef },
+        },
+    ]);
     
     template 'status', {
         setup_collected     => $badges->search({ badge_type => 'setup', checkin => { '!=' => undef } })->count,

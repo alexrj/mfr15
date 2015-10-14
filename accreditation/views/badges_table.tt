@@ -8,15 +8,32 @@
     [% FOREACH badge IN badges.all %]
     <tr>
         <td>
-            [% IF !badge.checkin %]
+            [% IF !badge.checkin && !badge.deleted %]
             <input type="checkbox" style="width: 30px; height: 30px" name="badges" value="[% badge.local_id %]" data-name="[% badge.name | html %] [% badge.lastname | html %]" />
             [% END %]
         </td>
-        <td>[% badge.name | html %]</td>
-        <td>[% badge.lastname | html %]</td>
         <td>
-            [% IF !badge.checkin %]
-                <span class="label label-success">Da ritirare</span>
+            [% IF badge.deleted %]
+                <strike style="color:red">[% badge.name | html %]</strike>
+            [% ELSE %]
+                [% badge.name | html %]
+            [% END %]
+        </td>
+        <td>
+            [% IF badge.deleted %]
+                <strike style="color:red">[% badge.lastname | html %]</strike>
+            [% ELSE %]
+                [% badge.lastname | html %]
+            [% END %]
+        </td>
+        <td>
+            [% IF badge.deleted %]
+                <p>
+                    <span class="label label-danger">Cancellato</span>
+                    <a class="btn btn-default btn-xs" onclick="return confirm('Sei sicuro di voler ripristinare questo badge?')" href="/cancel?lid=[% badge.local_id %]&oid=[% badge.oid || '' %]">Annulla</a>
+                </p>
+            [% ELSIF !badge.checkin %]
+                <p><span class="label label-success">Da ritirare</span></p>
             [% ELSE %]
                 <p>
                     <span class="label label-warning">Ritirato</span>
@@ -24,9 +41,16 @@
                 </p>
                 <p>
                     <small>da [% badge.checkin_person | html %]
-                    [% badge.checkin_person_contact | html %]
+                    [% IF badge.checkin_person_contact %]([% badge.checkin_person_contact | html %])[% END %]
                     <br />il [% badge.checkin %]</small>
                 </p>
+            [% END %]
+            
+            [% IF badge.same_name_count > 1 %]
+            <p><a href="/search?same_name_as_lid=[% badge.local_id %]" class="label label-warning">Presente in altre liste!</a></p>
+            [% END %]
+            [% IF badge.collected_badge_local_id && badge.collected_badge_local_id != badge.local_id %]
+            <p><a href="/search?same_name_as_lid=[% badge.local_id %]&collected=1" class="label label-warning">Già ritirato in altre liste!</a></p>
             [% END %]
         </td>
     </tr>
