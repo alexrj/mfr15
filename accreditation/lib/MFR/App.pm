@@ -120,12 +120,12 @@ get '/exhibit' => sub {
     my $exhibit = $dbix->table('exhibits')->find({ 'me.oid' => param 'oid' })
         or redirect '/';
     
-    my $badges = filter_badges($exhibit->badges);
+    my $badges = $exhibit->badges;
     
     template 'exhibit', {
         exhibit      => $exhibit,
-        setup_badges => $badges->search({ 'me.badge_type' => 'setup' })->order_by('me.lastname'),
-        event_badges => $badges->search({ 'me.badge_type' => 'event' })->order_by('me.lastname'),
+        setup_badges => filter_badges($badges, 'setup')->order_by('me.lastname'),
+        event_badges => filter_badges($badges, 'event')->order_by('me.lastname'),
     };
 };
 
@@ -133,7 +133,7 @@ get '/event' => sub {
     my $event = $dbix->table('events')->find({ 'me.oid' => param 'oid' })
         or redirect '/';
     
-    my $badges = filter_badges($event->badges);
+    my $badges = filter_badges($event->badges, 'event');
     
     template 'event', {
         event        => $event,
@@ -142,12 +142,25 @@ get '/event' => sub {
 };
 
 sub filter_badges {
-    my ($badges) = @_;
+    my ($badges, $badge_type) = @_;
     
     return $badges
-        ->left_join('badges_name_count', { 'me.name' => 'badges_name_count.name', 'me.lastname' => 'badges_name_count.lastname' })
+        ->left_join('badges_name_count', {
+            'me.name'       => 'badges_name_count.name',
+            'me.lastname'   => 'badges_name_count.lastname',
+            'me.badge_type' => 'badges_name_count.badge_type',
+        })
         ->select_also(['badges_name_count.badge_count' => 'same_name_count'])
-        ->left_join('collected_badges', { 'me.name' => 'collected_badges.name', 'me.lastname' => 'collected_badges.lastname' })
+        ->left_join('collected_badges', {
+            'me.name'       => 'collected_badges.name',
+            'me.lastname'   => 'collected_badges.lastname',
+            'me.badge_type' => 'collected_badges.badge_type',
+        })
+        ->search({
+            'me.badge_type'                => $badge_type,
+            'badges_name_count.badge_type' => [ undef, $badge_type ],
+            'collected_badges.badge_type'  => [ undef, $badge_type ],
+        })
         ->select_also(['collected_badges.local_id' => 'collected_badge_local_id']);
 }
 

@@ -177,9 +177,9 @@ my $dbix = MFR::Accreditation::dbix();
             WHERE oid NOT IN (SELECT oid FROM badges b)");
         
         $dbix->dbh->do("TRUNCATE TABLE badges_name_count");
-        $dbix->dbh->do("INSERT IGNORE INTO badges_name_count
-            SELECT name, lastname, COUNT(*) FROM
-                (SELECT DISTINCT name, lastname, exhibit_oid, event_oid FROM badges) AS same_name GROUP BY name,lastname");
+        $dbix->dbh->do("INSERT INTO badges_name_count
+            SELECT NULL, name, lastname, COUNT(*), badge_type FROM
+                (SELECT DISTINCT name, lastname, badge_type, exhibit_oid, event_oid FROM badges) AS same_name GROUP BY name,lastname,badge_type");
         
         $dbix->dbh->do("UNLOCK TABLES");
     });
