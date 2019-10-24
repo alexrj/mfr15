@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<!-- This page is displayed on the large displays all over the venue. It displays information about the upcoming events dynamically -->
+
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Maker Faire Rome</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,700,900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <style>
+        body {
+            font-family: 'Source Sans Pro', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        .slide {
+            position: fixed;
+            height: 100vh;
+            width: 100vw;
+            overflow-y: hidden;
+        }
+
+        .centered-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .event {
+            clear: both;
+            margin-bottom: 10px;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            /*border-bottom: rgb(0, 155, 221) dashed 3px;*/
+        }
+
+        .highlight .event {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            padding: 40px;
+        }
+
+        .event-img {
+            flex: 0 auto;
+        }
+
+        .event-img img {
+            width: 250px;
+            height: 250px;
+            object-fit: cover;
+            margin-right: 25px;
+        }
+
+        .highlight .event-img img {
+            width: 550px;
+            height: 550px;
+            margin-right: 40px;
+        }
+
+        .event-info {
+            flex: 0 auto;
+        }
+
+        .event-room {
+            margin-left: 15px;
+
+            font-weight: 700;
+            border: 2px solid #009bdd;
+            color: #dc0614;
+            text-transform: uppercase;
+            text-align: center;
+            font-size: 20px;
+            padding: 3px 6px;
+            line-height: 100%;
+        }
+
+        .highlight .event-room {
+            font-size: 30px;
+        }
+
+        .event-time {
+            color: rgb(220, 6, 20);
+            font-weight: 900;
+            font-size: 36px;
+        }
+
+        .highlight .event-time {
+            font-size: 48px;
+        }
+
+        .event-title {
+            display: block;
+            font-size: 30px;
+            font-weight: bold;
+            color: rgb(0, 155, 221);
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .highlight .event-title {
+            font-size: 40px;
+        }
+
+        .event-speaker {
+            display: block;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        .highlight .event-speaker {
+            margin-top: 15px;
+        }
+
+        .event-description {
+            margin-top: 30px;
+        }
+
+        .highlight .event-description {
+            font-size: 24px;
+        }
+    </style>
+    <script type="text/javascript">
+        'use strict';
+        $(function () {
+            var demo = true;
+
+            var slides = new Vue({
+                el: '.slides',
+                data: {
+                    images: [
+                        'https://2019.makerfairerome.eu/wp-content/themes/mfr19/img/MFR.png'
+                    ],
+                    events: []
+                },
+                computed: {
+                    now() {
+                        var now = new Date();
+                        if (demo) {
+                            now = new Date("2019-10-19T16:00:00");
+                        }
+                        return now;
+                    },
+                    nextEvents() {
+                        var now = this.now;
+                        return this.events.filter(function (event) {
+                            var diff = (event.start - now) / 1000 / 60;
+                            // if event is older than 'a' minutes or starts more than 'b' minutes from now, skip
+                            return diff >= -15 && diff < 50;
+                        });
+                    },
+                    highlights() {
+                        var now = this.now;
+                        return this.events.filter(function (event) {
+                            // skip past events
+                            var diff = (event.start - now) / 1000 / 60;
+                            return diff >= 15 && event.e.highlight;
+                        });
+                    }
+                }
+            });
+
+            function loadEvents(cb) {
+                /* FETCH EVENTS */
+                $.getJSON("events.json", function (json) {
+                    var events = [];
+                    json.forEach(function (event, i) {
+                        event.slots.forEach(function (slot, j) {
+                            // skip exhibits and other things
+                            if (slot.room.match(/^[A-Z]\d+ /)) {
+                                return;
+                            }
+                            if (slot.room.match(/fablab/i)) {
+                                return;
+                            }
+
+                            // reformat room names
+                            slot.room = slot.room.replace(/\d.ROOM_(\d[A-Z]?) /, 'Room $1 ');
+                            slot.room = slot.room.replace(/\d.STAGE_(\d[A-Z]?) /, 'Stage $1 ');
+
+                            var start = new Date(slot.start);
+                            if (start.getDate() == slides.now.getDate() || (demo && start.getDate() == 19)) {
+                                events.push({
+                                    e: event,
+                                    start: start,
+                                    slot: slot
+                                });
+                            }
+                        });
+                    });
+
+                    events.sort(function (a, b) {
+                        return a.start - b.start;
+                    });
+
+                    slides.events = events;
+
+                    if (cb) cb();
+                });
+            }
+
+            /* SCROLL EVENTS AUTOMATICALLY */
+            var scrollSpeed = 20000;
+            var lastScrollTop;
+            var scrollEvents = function () {
+                var $events = $('.events');
+                var scrollTop = $events[0].scrollHeight - $(document).height();
+                if (scrollTop < 0) {
+                    // failed to get scrollHeight because we're hidden
+                    scrollTop = lastScrollTop;
+                }
+                lastScrollTop = scrollTop;
+                $events.animate({ scrollTop: scrollTop }, {
+                    duration: scrollSpeed,
+                    queue: false,
+                    complete: function () {
+                        $events.animate({ scrollTop: 0 }, { duration: scrollSpeed, queue: false });
+                    }
+                });
+            };
+
+            /* SLIDESHOW */
+            var nextSlide;
+            nextSlide = function () {
+                var $current = $('.slide').filter(':visible');
+                setTimeout(function () {
+                    $current.fadeOut({
+                        queue: false,
+                        complete: function () {
+                            var $next = $(this).next('.slide');
+                            if ($next.length == 0) {
+                                $next = $('.slide').eq(0);
+                            }
+                            $next.fadeIn({ queue: false });
+                            nextSlide();
+                        }
+                    });
+                }, $current.data('duration'));
+            };
+            var startSlideshow = function () {
+                $('.slide').hide().eq(0).show();  // show the first one
+                nextSlide();
+            };
+
+            /* LOAD EVENTS AND START THE SLIDESHOW */
+            loadEvents(function () {
+                // start scrolling after a bit
+                setTimeout(function () {
+                    scrollEvents();
+                    setInterval(function () { scrollEvents() }, scrollSpeed * 2);
+                }), 1000;
+
+                startSlideshow();
+
+                // Keep reloading events.
+                setInterval(loadEvents, 720 * 1000);
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div class="slides">
+        <div class="slide events" style="display: none" data-duration="20000">
+            <div class="event" v-for="event in nextEvents">
+                <div class="event-img">
+                    <img v-bind:src="event.e.speaker_image" />
+                </div>
+                <div class="event-info">
+                    <span class="event-time">{{ event.slot.start.substr(11, 5) }}</span>
+                    <span class="event-room">{{ event.slot.room }}</span>
+                    <span class="event-title">{{ event.e.title_it }}</span>
+                    <span class="event-speaker">{{ event.e.speaker }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide highlight" style="display: none" data-duration="10000" v-for="event in highlights">
+            <div class="event">
+                <div class="event-img">
+                    <img v-bind:src="event.e.speaker_image" />
+                </div>
+                <div class="event-info">
+                    <span class="event-time">{{ event.slot.start.substr(11, 5) }}</span>
+                    <span class="event-room">{{ event.slot.room }}</span>
+                    <span class="event-title">{{ event.e.title_it }}</span>
+                    <span class="event-speaker">{{ event.e.speaker }}</span>
+                    <div class="event-description">
+                        {{ event.e.description_it }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide centered-image" style="display: none" data-duration="3000" v-for="img in images">
+            <img v-bind:src="img" style="width: 70%" />
+        </div>
+    </div>
+</body>
+
+</html>
