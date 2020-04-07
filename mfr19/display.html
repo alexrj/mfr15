@@ -139,16 +139,18 @@
                     ],
                     events: []
                 },
-                computed: {
+                methods: {
                     now() {
                         var now = new Date();
                         if (demo) {
                             now = new Date("2019-10-19T16:00:00");
                         }
                         return now;
-                    },
+                    }
+                },
+                computed: {
                     nextEvents() {
-                        var now = this.now;
+                        var now = this.now();
                         return this.events.filter(function (event) {
                             var diff = (event.start - now) / 1000 / 60;
                             // if event is older than 'a' minutes or starts more than 'b' minutes from now, skip
@@ -156,7 +158,7 @@
                         });
                     },
                     highlights() {
-                        var now = this.now;
+                        var now = this.now();
                         return this.events.filter(function (event) {
                             // skip past events
                             var diff = (event.start - now) / 1000 / 60;
